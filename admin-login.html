@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Fidelity Admin Secure Login</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+
+/* ===== GLOBAL ===== */
+*{margin:0;padding:0;box-sizing:border-box}
+
+body{
+font-family:Poppins,sans-serif;
+height:100vh;
+display:flex;
+align-items:center;
+justify-content:center;
+background:linear-gradient(135deg,#022c22,#065f46,#16a34a);
+background-size:400% 400%;
+animation:bgMove 12s ease infinite;
+overflow:hidden;
+}
+
+@keyframes bgMove{
+0%{background-position:0% 50%}
+50%{background-position:100% 50%}
+100%{background-position:0% 50%}
+}
+
+/* glowing blobs */
+body::before,
+body::after{
+content:"";
+position:absolute;
+width:420px;
+height:420px;
+border-radius:50%;
+filter:blur(120px);
+opacity:.45;
+}
+
+body::before{
+background:#22c55e;
+top:-120px;
+left:-120px;
+animation:float 7s infinite alternate;
+}
+
+body::after{
+background:#4ade80;
+bottom:-140px;
+right:-140px;
+animation:float 9s infinite alternate;
+}
+
+@keyframes float{
+from{transform:translateY(0)}
+to{transform:translateY(50px)}
+}
+
+/* ===== LOGIN CARD ===== */
+.login-card{
+width:390px;
+padding:38px 32px;
+border-radius:22px;
+background:rgba(255,255,255,.92);
+backdrop-filter:blur(18px);
+box-shadow:0 25px 70px rgba(0,0,0,.35);
+position:relative;
+z-index:2;
+animation:fadeUp .8s ease;
+}
+
+@keyframes fadeUp{
+from{opacity:0;transform:translateY(25px)}
+to{opacity:1;transform:translateY(0)}
+}
+
+/* LOGO */
+.logo{
+text-align:center;
+font-size:26px;
+font-weight:700;
+color:#16a34a;
+margin-bottom:25px;
+letter-spacing:.5px;
+}
+
+/* INPUT GROUP */
+.input-group{margin-bottom:18px;}
+
+.input-group label{
+font-size:13px;
+font-weight:500;
+color:#374151;
+}
+
+.input{
+width:100%;
+margin-top:6px;
+padding:13px;
+border-radius:12px;
+border:1px solid #e5e7eb;
+font-size:14px;
+outline:none;
+transition:.25s;
+}
+
+.input:focus{
+border-color:#16a34a;
+box-shadow:0 0 0 3px #16a34a22;
+transform:scale(1.02);
+}
+
+/* PASSWORD */
+.password-wrap{position:relative;}
+
+.toggle-pass{
+position:absolute;
+right:14px;
+top:50%;
+transform:translateY(-50%);
+cursor:pointer;
+font-size:12px;
+color:#16a34a;
+font-weight:600;
+}
+
+/* ERROR */
+.error{
+color:#ef4444;
+font-size:13px;
+margin-bottom:12px;
+display:none;
+animation:shake .35s;
+}
+
+@keyframes shake{
+0%,100%{transform:translateX(0)}
+25%{transform:translateX(-4px)}
+75%{transform:translateX(4px)}
+}
+
+/* BUTTON */
+.login-btn{
+width:100%;
+padding:14px;
+border:none;
+border-radius:12px;
+background:linear-gradient(135deg,#16a34a,#15803d);
+color:white;
+font-weight:600;
+cursor:pointer;
+transition:.3s;
+display:flex;
+align-items:center;
+justify-content:center;
+gap:8px;
+}
+
+.login-btn:hover{
+transform:translateY(-2px);
+box-shadow:0 10px 25px rgba(22,163,74,.35);
+}
+
+.spinner{
+width:18px;
+height:18px;
+border:2px solid #fff;
+border-top:2px solid transparent;
+border-radius:50%;
+animation:spin 1s linear infinite;
+display:none;
+}
+
+@keyframes spin{
+to{transform:rotate(360deg)}
+}
+
+/* FOOTER */
+.footer{
+margin-top:18px;
+text-align:center;
+font-size:12px;
+color:#6b7280;
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="login-card">
+
+<div class="logo">Fidelity Admin</div>
+
+<div id="errorMsg" class="error">Invalid admin credentials</div>
+
+<div class="input-group">
+<label>Admin Username</label>
+<input id="username" class="input" placeholder="Enter username">
+</div>
+
+<div class="input-group">
+<label>Password</label>
+
+<div class="password-wrap">
+<input id="password" type="password" class="input" placeholder="Enter password">
+<span class="toggle-pass" onclick="togglePassword()">SHOW</span>
+</div>
+</div>
+
+<button class="login-btn" id="loginBtn" onclick="loginAdmin()">
+<span id="btnText">Login Securely</span>
+<div class="spinner" id="spinner"></div>
+</button>
+
+<div class="footer">
+🔒 Secure Admin Access • Fidelity Control System
+</div>
+
+</div>
+
+<script>
+
+/* ENTER KEY LOGIN */
+document.addEventListener("keypress",e=>{
+if(e.key==="Enter") loginAdmin();
+});
+
+/* PASSWORD TOGGLE */
+function togglePassword(){
+const pass=document.getElementById("password");
+pass.type = pass.type==="password" ? "text":"password";
+}
+
+/* LOGIN DEMO (CONNECT TO API LATER) */
+function loginAdmin(){
+
+const btnText=document.getElementById("btnText");
+const spinner=document.getElementById("spinner");
+const error=document.getElementById("errorMsg");
+
+spinner.style.display="block";
+btnText.innerText="Authenticating...";
+error.style.display="none";
+
+setTimeout(()=>{
+
+const user=document.getElementById("username").value.trim();
+const pass=document.getElementById("password").value.trim();
+
+/* TEMP LOGIN */
+if(user==="admin" && pass==="admin123"){
+
+localStorage.setItem("adminToken","demo-token");
+window.location.href="admin.html";
+
+}else{
+spinner.style.display="none";
+btnText.innerText="Login Securely";
+error.style.display="block";
+}
+
+},1200);
+
+}
+
+</script>
+
+</body>
+</html>

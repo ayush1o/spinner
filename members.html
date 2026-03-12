@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Members - Fidelity Admin</title>
+
+<link rel="stylesheet" href="css/admin.css">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+</head>
+
+<body>
+
+<div class="sidebar">
+    <div class="logo">Fidelity</div>
+
+    <div class="menu">
+        <a href="dashboard.html">Dashboard</a>
+        <a class="active" href="members.html">Membership</a>
+        <a href="trade.html">Trade</a>
+        <a href="system.html">System</a>
+    </div>
+</div>
+
+<div class="main">
+
+<div class="topbar">
+    <h3>Member Management</h3>
+    <div>Admin Panel</div>
+</div>
+
+<div class="card">
+
+<table>
+<thead>
+<tr>
+<th>UID</th>
+<th>User</th>
+<th>Balance</th>
+<th>Orders</th>
+<th>Withdraw</th>
+<th>Status</th>
+<th>Actions</th>
+</tr>
+</thead>
+
+<tbody id="memberTable"></tbody>
+
+</table>
+
+</div>
+
+</div>
+
+<script src="js/admin.js"></script>
+</body>
+</html>

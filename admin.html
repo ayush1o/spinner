@@ -1,0 +1,781 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Fidelity Admin</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+
+<style>
+
+*{margin:0;padding:0;box-sizing:border-box;font-family:Poppins}
+body{background:#f3f6fb}
+
+/* LOGIN */
+.login{height:100vh;display:flex;justify-content:center;align-items:center}
+.loginBox{background:white;padding:30px;border-radius:10px;width:320px;box-shadow:0 5px 20px rgba(0,0,0,.1)}
+.loginBox input{width:100%;padding:10px;margin-bottom:10px;border:1px solid #ddd;border-radius:6px}
+.loginBox button{width:100%;padding:10px;background:#16a34a;border:none;color:white;border-radius:6px;cursor:pointer}
+
+/* ADMIN */
+.admin{display:none}
+
+.sidebar{
+width:230px;background:#0f172a;color:white;height:100vh;position:fixed;padding:20px
+}
+
+.logo{
+font-size:22px;color:#22c55e;margin-bottom:25px
+}
+
+.menu button{
+display:block;width:100%;background:none;border:none;color:#cbd5e1;padding:10px;margin-bottom:6px;text-align:left;border-radius:6px;cursor:pointer
+}
+
+.menu button:hover{background:#22c55e;color:white}
+
+.main{margin-left:230px;padding:30px}
+
+.card{
+background:white;padding:20px;border-radius:10px;margin-bottom:20px;box-shadow:0 5px 20px rgba(0,0,0,.05)
+}
+
+.topbar{
+background:linear-gradient(90deg,#16a34a,#22c55e);padding:15px;color:white;border-radius:10px;margin-bottom:20px
+}
+
+table{width:100%;border-collapse:collapse;margin-top:10px}
+
+th,td{
+padding:10px;border-bottom:1px solid #eee;font-size:13px
+}
+
+th{background:#f8fafc}
+
+.btn{
+padding:5px 8px;border:none;border-radius:5px;color:white;font-size:12px;cursor:pointer;margin:2px
+}
+
+.green{background:#16a34a}
+.blue{background:#2563eb}
+.orange{background:#f97316}
+.red{background:#ef4444}
+.purple{background:#9333ea}
+.gray{background:#64748b}
+
+.status{
+padding:4px 8px;border-radius:12px;font-size:11px
+}
+
+.online{background:#dcfce7;color:#16a34a}
+.offline{background:#e5e7eb;color:#374151}
+
+.modal{
+display:none;position:fixed;top:0;left:0;width:100%;height:100%;
+background:rgba(0,0,0,.4);justify-content:center;align-items:center
+}
+
+.modalBox{
+background:white;padding:25px;width:450px;border-radius:10px
+}
+
+.modalBox input,.modalBox select,.modalBox textarea{
+width:100%;padding:8px;margin-bottom:10px;border:1px solid #ddd;border-radius:6px
+}
+
+.searchBar{
+display:flex;gap:10px;margin-top:10px
+}
+
+</style>
+</head>
+
+<body>
+
+<!-- LOGIN -->
+<div class="login" id="loginPage">
+<div class="loginBox">
+<h3> Admin Login Fidelity</h3>
+<input id="user" placeholder="Username">
+<input id="pass" type="password" placeholder="Password">
+<button onclick="login()">Login</button>
+</div>
+</div>
+
+<!-- ADMIN PANEL -->
+<div class="admin" id="adminPanel">
+
+<div class="sidebar">
+<div class="logo">Fidelity</div>
+
+<div class="menu">
+<button onclick="openPage('members')">Members</button>
+<button onclick="openPage('deposits')">Deposits</button>
+<button onclick="openPage('withdraws')">Withdraws</button>
+<button onclick="logout()">Logout</button>
+</div>
+</div>
+
+<div class="main">
+
+<div class="topbar">Admin Dashboard</div>
+
+<!-- MEMBERS PAGE -->
+<div id="members" class="page">
+
+<div class="card">
+
+<h3>Members</h3>
+
+<div class="searchBar">
+<input id="searchInput" placeholder="Search Username / ID" oninput="searchUsers()">
+<button class="btn blue" onclick="searchUsers()">Search</button>
+<button class="btn gray" onclick="resetSearch()">Reset</button>
+</div>
+
+<table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Name</th>
+<th>Balance</th>
+<th>Total Withdraw</th>
+<th>Real Deposit</th>
+<th>Help Deposit</th>
+<th>Status</th>
+<th>Credit</th>
+<th>Actions</th>
+</tr>
+</thead>
+
+<tbody id="memberTable"></tbody>
+
+</table>
+
+</div>
+</div>
+
+
+<!-- DEPOSIT PAGE -->
+<div id="deposits" class="page" style="display:none">
+
+<div class="card">
+
+<h3>Deposit Requests</h3>
+
+<table>
+<thead>
+<tr>
+<th>ID</th>
+<th>User</th>
+<th>Amount</th>
+<th>Status</th>
+<th>Action</th>
+</tr>
+</thead>
+
+<tbody id="depositTable"></tbody>
+
+</table>
+
+</div>
+</div>
+
+
+<!-- WITHDRAW PAGE -->
+<div id="withdraws" class="page" style="display:none">
+
+<div class="card">
+
+<h3>Withdraw Requests</h3>
+
+<table>
+<thead>
+<tr>
+<th>ID</th>
+<th>User</th>
+<th>Amount</th>
+<th>Status</th>
+<th>Action</th>
+</tr>
+</thead>
+
+<tbody id="withdrawTable"></tbody>
+
+</table>
+
+</div>
+</div>
+</div>   <!-- closes withdraw page -->
+</div>   <!-- closes .main -->
+
+</div>
+
+<!-- ACTION MODAL -->
+
+<!-- INJECT FORM MODAL -->
+<div class="modal" id="injectModal">
+<div class="modalBox">
+
+<h3>Add Injection</h3>
+
+<input type="date" id="injDate">
+
+<input type="text" placeholder="Order ID" id="orderId">
+
+<select id="product" onchange="calculateInjection()">
+
+<option value="2500">RELIANCE ₹2500</option>
+
+<option value="3800">TCS ₹3800</option>
+
+<option value="1500">INFY ₹1500</option>
+
+<option value="3200">HDFC BANK ₹3200</option>
+
+<option value="900">ITC ₹900</option>
+
+<option value="2100">ICICI BANK ₹2100</option>
+
+<option value="2800">HINDUNILVR ₹2800</option>
+
+<option value="750">WIPRO ₹750</option>
+
+<option value="650">TATA MOTORS ₹650</option>
+
+<option value="1800">BAJAJ FINANCE ₹1800</option>
+
+<option value="1100">SBIN ₹1100</option>
+
+<option value="4200">ASIAN PAINTS ₹4200</option>
+
+<option value="3600">LT ₹3600</option>
+
+</select>
+
+<input type="number" placeholder="Quantity" id="qty" oninput="calculateInjection()">
+
+<input type="number" placeholder="Commission %" id="commission" oninput="calculateInjection()">
+
+<div id="summary" class="summary">
+Fill details to see calculation
+</div>
+
+<button class="btn green" onclick="submitInjection()">Submit</button>
+
+<button class="btn red" onclick="closeInject()">Cancel</button>
+
+</div>
+</div>
+<div class="modal" id="actionModal">
+<div class="modalBox">
+<div id="modalContent"></div>
+</div>
+</div>
+<script>
+
+/* =========================
+   API BASE
+========================= */
+
+const API="http://localhost:3001/api";
+
+/* LOGIN */
+
+function login(){
+if(user.value==="admin" && pass.value==="admin123"){
+loginPage.style.display="none"
+adminPanel.style.display="block"
+renderUsers()
+loadDeposits()
+loadWithdraws()
+}else{
+alert("Invalid Login")
+}
+}
+
+function logout(){location.reload()}
+
+/* =========================
+   USERS STATE
+========================= */
+
+let users=[]
+let selectedUser=null
+
+/* =========================
+   LOAD USERS FROM DATABASE
+========================= */
+
+async function renderUsers(){
+
+try{
+
+const res = await fetch(API + "/admin/users")
+
+if(!res.ok){
+console.error("Server error")
+return
+}
+
+const data = await res.json()
+
+users=data.users
+
+memberTable.innerHTML=""
+
+users.forEach(u=>{
+
+memberTable.innerHTML+=`
+
+<tr>
+
+<td>${u.id}</td>
+<td>${u.name}</td>
+<td>₹${u.wallet_balance}</td>
+<td>₹0</td>
+<td>₹0</td>
+<td>₹0</td>
+
+<td>
+<span class="status ${u.status?'online':'offline'}">
+${u.status?'Active':'Disabled'}
+</span>
+</td>
+
+<td>${u.credit_score}</td>
+
+<td>
+
+<button class="btn green" onclick="updateWallet(${u.id})">Wallet</button>
+
+<button class="btn gray" onclick="toggleUser(${u.id},${u.status})">
+${u.status?'Disable':'Activate'}
+</button>
+
+</td>
+
+</tr>
+
+`
+
+})
+
+}catch(err){
+
+console.error(err)
+
+}
+
+}
+
+/* =========================
+   SEARCH USERS
+========================= */
+
+function searchUsers(){
+
+let q=searchInput.value.toLowerCase()
+
+memberTable.innerHTML=""
+
+users
+.filter(u=>u.name.toLowerCase().includes(q)||u.id.toString().includes(q))
+.forEach(u=>{
+
+memberTable.innerHTML+=`
+
+<tr>
+
+<td>${u.id}</td>
+<td>${u.name}</td>
+<td>₹${u.wallet_balance}</td>
+<td>₹0</td>
+<td>₹0</td>
+<td>₹0</td>
+
+<td>
+<span class="status ${u.status?'online':'offline'}">
+${u.status?'Active':'Disabled'}
+</span>
+</td>
+
+<td>${u.credit_score}</td>
+
+<td>
+
+<button class="btn green" onclick="updateWallet(${u.id})">Wallet</button>
+
+<button class="btn gray" onclick="toggleUser(${u.id},${u.status})">
+${u.status?'Disable':'Activate'}
+</button>
+
+</td>
+
+</tr>
+
+`
+
+})
+
+}
+
+function resetSearch(){
+searchInput.value=""
+renderUsers()
+}
+
+/* =========================
+   UPDATE WALLET
+========================= */
+async function updateWallet(userId){
+
+let balance = prompt("Enter new wallet balance")
+
+if(balance === null) return
+
+balance = Number(balance)
+
+if(isNaN(balance)){
+alert("Invalid amount")
+return
+}
+
+const res = await fetch(API + "/admin/update-wallet",{
+method:"POST",
+headers:{
+"Content-Type":"application/json"
+},
+body:JSON.stringify({
+userId:userId,
+balance:balance
+})
+})
+
+if(!res.ok){
+alert("Update failed")
+return
+}
+
+alert("Wallet updated")
+
+renderUsers()
+
+}
+/* =========================
+   TOGGLE USER STATUS
+========================= */
+
+async function toggleUser(userId,currentStatus){
+
+await fetch(API+"/admin/toggle-user",{
+
+method:"POST",
+
+headers:{
+"Content-Type":"application/json"
+},
+
+body:JSON.stringify({
+userId:userId,
+status:!currentStatus
+})
+
+})
+
+renderUsers()
+
+}
+
+/* =========================
+   INJECT SYSTEM
+========================= */
+
+function openInject(id){
+
+selectedUser = users.find(u => u.id === id)
+
+document.getElementById("injectModal").style.display = "flex"
+
+calculateInjection()
+
+}
+
+function closeInject(){
+
+document.getElementById("injectModal").style.display = "none"
+
+}
+
+function calculateInjection(){
+
+let price = Number(document.getElementById("product").value)
+
+let q = Number(document.getElementById("qty").value || 0)
+
+let c = Number(document.getElementById("commission").value || 0)
+
+let base = price * q
+
+let com = base * (c/100)
+
+let total = base + com
+
+document.getElementById("summary").innerHTML = `
+Stock Price: ₹${price}<br>
+Quantity: ${q}<br>
+Base Amount: ₹${base}<br>
+Commission: ₹${com}<br>
+<b>Total Inject: ₹${total}</b>
+`
+
+}
+
+function submitInjection(){
+
+alert("Injection feature requires backend logic")
+
+closeInject()
+
+}
+
+async function loadDeposits(){
+
+const res = await fetch(API + "/admin/deposits");
+
+if(!res.ok){
+console.error("Failed to load deposits")
+return
+}
+
+const data = await res.json();
+
+depositTable.innerHTML="";
+
+data.deposits.forEach(d=>{
+
+depositTable.innerHTML+=`
+
+<tr>
+
+<td>${d.id}</td>
+<td>${d.user_id}</td>
+<td>₹${d.amount}</td>
+<td>${d.status}</td>
+
+<td>
+
+<button class="btn green" onclick="approveDeposit(${d.id},${d.user_id},${d.amount})">
+Approve
+</button>
+
+</td>
+
+</tr>
+
+`;
+
+});
+
+}
+
+async function approveDeposit(id,userId,amount){
+
+const res = await fetch(API + "/admin/approve-deposit",{
+method:"POST",
+headers:{
+"Content-Type":"application/json"
+},
+body:JSON.stringify({
+requestId:id,
+userId:userId,
+amount:amount
+})
+})
+
+if(!res.ok){
+alert("Approval failed")
+return
+}
+
+alert("Deposit Approved")
+
+loadDeposits()
+renderUsers()
+
+}
+
+async function loadWithdraws(){
+
+const res = await fetch(API + "/admin/withdraws");
+
+if(!res.ok){
+console.error("Failed to load withdraws")
+return
+}
+
+const data = await res.json();
+
+withdrawTable.innerHTML="";
+
+data.withdraws.forEach(w=>{
+
+withdrawTable.innerHTML+=`
+
+<tr>
+
+<td>${w.id}</td>
+<td>${w.user_id}</td>
+<td>₹${w.amount}</td>
+<td>${w.status}</td>
+
+<td>
+
+<button class="btn green"
+onclick="approveWithdraw(${w.id},${w.user_id},${w.amount})">
+Approve
+</button>
+
+</td>
+
+</tr>
+
+`;
+
+});
+
+}
+
+async function approveWithdraw(id,userId,amount){
+
+const res = await fetch(API+"/admin/approve-withdraw",{
+
+method:"POST",
+
+headers:{
+"Content-Type":"application/json"
+},
+
+body:JSON.stringify({
+requestId:id,
+userId:userId,
+amount:amount
+})
+
+});
+
+alert("Withdraw Approved");
+
+loadWithdraws();
+renderUsers();
+
+}
+
+function openPage(id){
+
+document.querySelectorAll(".page").forEach(p=>p.style.display="none")
+
+document.getElementById(id).style.display="block"
+
+if(id==="deposits"){
+loadDeposits()
+}
+
+if(id==="withdraws"){
+loadWithdraws()
+}
+
+}
+
+/* =========================
+   ALERT SYSTEM
+========================= */
+
+function openAlert(id){
+
+selectedUser=users.find(u=>u.id===id)
+
+modalContent.innerHTML=`
+
+<h3>Send Alert</h3>
+
+<textarea id="alertMsg"></textarea>
+
+<button class="btn green" onclick="sendAlert()">Send</button>
+<button class="btn gray" onclick="closeModal()">Cancel</button>
+
+`
+
+actionModal.style.display="flex"
+
+}
+
+function sendAlert(){
+
+alert("Alert sent: "+document.getElementById("alertMsg").value)
+
+closeModal()
+
+}
+
+/* =========================
+   CREDIT SCORE
+========================= */
+
+function updateCredit(id){
+
+selectedUser=users.find(u=>u.id===id)
+
+modalContent.innerHTML=`
+
+<h3>Update Credit Score</h3>
+
+<input type="number" id="creditScoreInput" placeholder="Enter Credit Score">
+
+<button class="btn green" onclick="submitCredit()">Update</button>
+
+<button class="btn gray" onclick="closeModal()">Cancel</button>
+
+`
+
+actionModal.style.display="flex"
+
+}
+
+function submitCredit(){
+
+let score = Number(document.getElementById("creditScoreInput").value)
+
+if(score < 0 || score > 100 || isNaN(score)){
+alert("Credit score must be between 0 and 100")
+return
+}
+
+alert("Credit score update requires backend API")
+
+closeModal()
+
+}
+
+/* =========================
+   SPIN
+========================= */
+
+function toggleSpin(id){
+
+alert("Spin control requires backend logic")
+
+}
+
+/* =========================
+   MODAL
+========================= */
+
+function closeModal(){
+actionModal.style.display="none"
+}
+
+</script>
+</body>
+</html>

@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Fidelity | Wallet</title>
+
+<style>
+body{
+margin:0;
+font-family:Poppins,sans-serif;
+background:#f4f6f5;
+display:flex;
+justify-content:center;
+}
+
+.container{
+width:100%;
+max-width:400px;
+min-height:100vh;
+display:flex;
+flex-direction:column;
+}
+
+.header{
+padding:18px;
+text-align:center;
+}
+
+.logo{
+color:#16a34a;
+font-size:22px;
+font-weight:800;
+}
+
+.balance-card{
+background:linear-gradient(135deg,#16a34a,#0f7a36);
+margin:20px;
+border-radius:20px;
+padding:25px;
+color:#fff;
+}
+
+.balance{
+font-size:32px;
+font-weight:800;
+margin-top:10px
+}
+
+.actions{
+display:flex;
+gap:10px;
+margin:0 20px;
+}
+
+.action-btn{
+flex:1;
+padding:14px;
+border:none;
+border-radius:14px;
+font-weight:700;
+cursor:pointer;
+}
+
+.deposit{background:#16a34a;color:#fff}
+.withdraw{background:#ef4444;color:#fff}
+
+.card{
+background:#fff;
+margin:20px;
+border-radius:18px;
+padding:20px;
+box-shadow:0 10px 25px rgba(0,0,0,.08);
+}
+
+.input{
+width:100%;
+padding:10px;
+margin:10px 0;
+border-radius:10px;
+border:1px solid #e5e7eb;
+}
+
+.tx{
+display:flex;
+justify-content:space-between;
+margin:14px 0;
+}
+
+.credit{color:#16a34a;font-weight:700}
+.debit{color:#ef4444;font-weight:700}
+
+.bottom-nav{
+position:fixed;
+bottom:0;
+left:50%;
+transform:translateX(-50%);
+width:100%;
+max-width:400px;
+height:65px;
+background:#fff;
+border-top:1px solid #e5e7eb;
+display:flex;
+justify-content:space-around;
+align-items:center;
+}
+
+.nav-btn{
+text-decoration:none;
+color:#6b7280;
+font-size:13px;
+font-weight:600;
+display:flex;
+flex-direction:column;
+align-items:center;
+}
+
+.nav-btn.active{
+color:#16a34a;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<header class="header">
+<div class="logo">Fidelity Wallet</div>
+</header>
+
+<div class="balance-card">
+<div>Available Balance</div>
+<div id="balance" class="balance">₹0.00</div>
+</div>
+
+<div class="actions">
+<button class="action-btn deposit" onclick="showDeposit()">Deposit</button>
+<button class="action-btn withdraw" onclick="showWithdraw()">Withdraw</button>
+</div>
+
+<div id="depositBox" class="card" style="display:none;">
+<h3>Add Funds</h3>
+<input id="depositAmount" class="input" placeholder="Enter Amount">
+<button class="action-btn deposit" onclick="depositMoney()">Confirm Deposit</button>
+</div>
+
+<div id="withdrawBox" class="card" style="display:none;">
+<h3>Withdraw Funds</h3>
+<input id="withdrawAmount" class="input" placeholder="Enter Amount">
+<button class="action-btn withdraw" onclick="withdrawMoney()">Confirm Withdraw</button>
+</div>
+
+<div class="card">
+<h3>Transaction History</h3>
+<div id="history"></div>
+</div>
+
+</div>
+
+<div class="bottom-nav">
+<a href="dashboard.html" class="nav-btn">🏠<span>Home</span></a>
+<a href="wallet.html" class="nav-btn active">💰<span>Wallet</span></a>
+</div>
+
+<script>
+
+const API = "http://localhost:3001/api";
+
+const token = localStorage.getItem("token");
+
+if(!token){
+location.href="login.html";
+}
+
+const balanceEl = document.getElementById("balance");
+const historyEl = document.getElementById("history");
+
+function formatINR(amount){
+return "₹"+Number(amount).toLocaleString("en-IN",{minimumFractionDigits:2});
+}
+
+async function loadWallet(){
+
+const res = await fetch(API+"/wallet",{
+headers:{Authorization:"Bearer "+token}
+});
+
+const data = await res.json();
+
+balanceEl.innerText = formatINR(data.balance);
+
+historyEl.innerHTML="";
+
+data.transactions.forEach(tx=>{
+
+const div=document.createElement("div");
+
+div.className="tx";
+
+div.innerHTML=`
+<div>
+<div>${tx.type}</div>
+<small>${new Date(tx.created_at).toLocaleString()}</small>
+</div>
+<div class="${tx.type==='deposit'?'credit':'debit'}">
+${tx.type==='withdraw'?"-":"+"}${formatINR(tx.amount)}
+</div>
+`;
+
+historyEl.appendChild(div);
+
+});
+
+}
+
+function showDeposit(){
+depositBox.style.display="block";
+withdrawBox.style.display="none";
+}
+
+function showWithdraw(){
+withdrawBox.style.display="block";
+depositBox.style.display="none";
+}
+
+async function depositMoney(){
+
+const amount=parseFloat(document.getElementById("depositAmount").value);
+
+if(!amount||amount<=0){
+alert("Enter valid amount");
+return;
+}
+
+await fetch(API+"/deposit",{
+method:"POST",
+headers:{
+"Content-Type":"application/json",
+Authorization:"Bearer "+token
+},
+body:JSON.stringify({amount})
+});
+
+alert("Deposit request submitted");
+
+loadWallet();
+}
+
+async function withdrawMoney(){
+
+const amount=parseFloat(document.getElementById("withdrawAmount").value);
+
+if(!amount||amount<=0){
+alert("Enter valid amount");
+return;
+}
+
+await fetch(API+"/withdraw",{
+method:"POST",
+headers:{
+"Content-Type":"application/json",
+Authorization:"Bearer "+token
+},
+body:JSON.stringify({amount})
+});
+
+alert("Withdraw request submitted");
+
+loadWallet();
+}
+
+loadWallet();
+
+</script>
+
+</body>
+</html>
