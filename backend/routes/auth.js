@@ -20,8 +20,8 @@ router.post('/signup', async (req, res) => {
 
     const normalizedEmail = email.trim().toLowerCase();
 
-    const [existingRows] = await pool.query('SELECT id FROM users WHERE email = ?', [normalizedEmail]);
-    if (existingRows.length > 0) {
+    const existingRows = await pool.query('SELECT id FROM users WHERE email = $1', [normalizedEmail]);
+    if (existingRows.rows.length > 0) {
       return res.status(409).json({
         success: false,
         message: 'User already exists'
@@ -30,13 +30,13 @@ router.post('/signup', async (req, res) => {
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    const [insertResult] = await pool.query(
-      'INSERT INTO users (name, email, password) VALUES (?, ?, ?)',
+    const insertResult = await pool.query(
+      'INSERT INTO users (name, email, password) VALUES ($1, $2, $3)',
       [name.trim(), normalizedEmail, hashedPassword]
     );
 
     const token = jwt.sign(
-      { userId: insertResult.insertId, email: normalizedEmail },
+      { userId: insertResult.rows[0].id, email: normalizedEmail },
       JWT_SECRET,
       { expiresIn: '7d' }
     );
@@ -46,7 +46,7 @@ router.post('/signup', async (req, res) => {
       message: 'Signup successful',
       token,
       user: {
-        id: insertResult.insertId,
+        id: insertResult.rows[0].id,
         name: name.trim(),
         email: normalizedEmail
       }
@@ -73,19 +73,19 @@ router.post('/login', async (req, res) => {
 
     const normalizedEmail = email.trim().toLowerCase();
 
-    const [rows] = await pool.query(
-      'SELECT id, name, email, password FROM users WHERE email = ? LIMIT 1',
+    const result = await pool.query(
+      'SELECT id, name, email, password FROM users WHERE email = $1 LIMIT 1',
       [normalizedEmail]
     );
 
-    if (rows.length === 0) {
+    if (result.rows.length === 0) {
       return res.status(401).json({
         success: false,
         message: 'Invalid email or password'
       });
     }
 
-    const user = rows[0];
+    const user = result.rows[0];
     const passwordMatches = await bcrypt.compare(password, user.password);
 
     if (!passwordMatches) {
